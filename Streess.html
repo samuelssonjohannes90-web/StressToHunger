@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stress-to-Satiety Journal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Inter', sans-serif;
+background-color: #f4f7f9;
+}
+.container-card {
+background: white;
+padding: 1.5rem;
+border-radius: 1rem;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.range-label {
+display: flex;
+justify-content: space-between;
+font-size: 0.875rem;
+color: #4b5563;
+margin-top: 0.25rem;
+}
+</style>
+</head>
+<body>
+
+<div id="app" class="max-w-4xl mx-auto p-4 md:p-8">
+<h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Stress-to-Satiety Journal</h1>
+<p id="user-id-display" class="text-center text-xs text-gray-500 mb-6 truncate">Loading user...</p>
+
+<!-- Loading Indicator -->
+<div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+<div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+<p class="ml-4 text-blue-600 font-medium">Loading data and signing in...</p>
+</div>
+
+<div id="logbook-content" class="space-y-8 hidden">
+
+<!-- Part A: Daily Check-in -->
+<div class="container-card">
+<h2 class="text-xl font-semibold text-blue-600 mb-4">Part A: Daily Check-in</h2>
+<p class="text-sm text-gray-600 mb-4">Fill in once daily to set the stage.</p>
+
+<form id="daily-check-in-form" class="space-y-4">
+<!-- Total Stress Level -->
+<div>
+<label for="dailyStress" class="block text-gray-700 font-medium mb-1">Total Stress Level (1=Low, 10=High)</label>
+<input type="range" id="dailyStress" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+<div class="range-label">
+<span>1 (Low)</span>
+<span id="stressValue">5</span>
+<span>10 (High)</span>
+</div>
+</div>
+
+<!-- Physical Hunger -->
+<div>
+<label for="dailyHunger" class="block text-gray-700 font-medium mb-1">Physical Hunger Before Meals (1=Satiated, 10=Starving)</label>
+<input type="range" id="dailyHunger" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+<div class="range-label">
+<span>1 (Satiated)</span>
+<span id="hungerValue">5</span>
+<span>10 (Starving)</span>
+</div>
+</div>
+
+<button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition duration-150 ease-in-out mt-4">Save Daily Status</button>
+<p id="daily-status-message" class="text-center text-sm mt-2"></p>
+</form>
+</div>
+
+<!-- Part B: Emotional Eating Log -->
+<div class="container-card">
+<h2 class="text-xl font-semibold text-green-600 mb-4">Part B: Emotional Eating Log (Event Log)</h2>
+<p class="text-sm text-gray-600 mb-4">Fill in every time you eat without physical hunger.</p>
+
+<form id="event-log-form" class="space-y-4">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Time -->
+<div>
+<label for="eventTime" class="block text-gray-700 font-medium mb-1">Time</label>
+<input type="time" id="eventTime" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+</div>
+<!-- Physical Hunger Level Before Eating -->
+<div>
+<label for="eventHunger" class="block text-gray-700 font-medium mb-1">Physical Hunger BEFORE (1-10)</label>
+<input type="number" id="eventHunger" min="1" max="10" placeholder="3" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+</div>
+</div>
+
+<!-- Emotional Trigger -->
+<div>
+<label class="block text-gray-700 font-medium mb-2">EMOTIONAL TRIGGER (Check one or more)</label>
+<div id="triggerCheckboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+<label class="inline-flex items-center"><input type="checkbox" name="trigger" value="Stress" class="form-checkbox text-red-600 rounded-md"> <span class="ml-2">Stress</span></label>
+<label class="inline-flex items-center"><input type="checkbox" name="trigger" value="Boredom" class="form-checkbox text-red-600 rounded-md"> <span class="ml-2">Boredom</span></label>
+<label class="inline-flex items-center"><input type="checkbox" name="trigger" value="Worry" class="form-checkbox text-red-600 rounded-md"> <span class="ml-2">Worry</span></label>
+<label class="inline-flex items-center"><input type="checkbox" name="trigger" value="Tiredness" class="form-checkbox text-red-600 rounded-md"> <span class="ml-2">Tiredness</span></label>
+<label class="inline-flex items-center"><input type="checkbox" name="trigger" value="Reward" class="form-checkbox text-red-600 rounded-md"> <span class="ml-2">Reward</span></label>
+</div>
+<input type="text" id="otherTrigger" placeholder="Other..." class="mt-2 w-full p-2 border border-gray-300 rounded-lg text-sm">
+</div>
+
+<!-- What did you eat? -->
+<div>
+<label for="eventFood" class="block text-gray-700 font-medium mb-1">What did you eat?</label>
+<input type="text" id="eventFood" placeholder="A bag of chips" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+</div>
+
+<!-- Result 10 Min. AFTER -->
+<div>
+<label for="eventResult" class="block text-gray-700 font-medium mb-1">Result 10 Min. AFTER (1=Regret, 10=Satisfied)</label>
+<input type="range" id="eventResult" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+<div class="range-label">
+<span>1 (Regret)</span>
+<span id="resultValue">5</span>
+<span>10 (Satisfied)</span>
+</div>
+</div>
+
+<!-- Alternative Action -->
+<div>
+<label for="eventAlternative" class="block text-gray-700 font-medium mb-1">ALTERNATIVE ACTION? (What could you have done instead?)</label>
+<input type="text" id="eventAlternative" placeholder="Go out on the balcony and breathe for 5 minutes." required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+</div>
+
+<button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg transition duration-150 ease-in-out">Add Event</button>
+</form>
+</div>
+
+<!-- Part C: Weekly Reflection & Analysis (NEW SECTION) -->
+<div class="container-card bg-purple-50 border-l-4 border-purple-400 p-4">
+<h2 class="font-semibold text-xl text-purple-700 mb-4">Part C: Weekly Reflection & Analysis</h2>
+<p class="text-sm text-gray-600 mb-4">Insights based on the last 7 days of logging. Identify your core patterns.</p>
+
+<div id="analysis-results" class="space-y-3">
+<p id="event-count" class="text-base font-medium"><strong>Total Events (Last 7 Days):</strong> 0</p>
+<p id="trigger-insight" class="text-base font-medium"><strong>Most Frequent Trigger:</strong> <span class="text-purple-700 italic">Log more events to find patterns.</span></p>
+<p id="alternative-summary" class="text-base font-medium"><strong>Alternative Summary:</strong> <span class="text-purple-700 italic">Review your "Alternative Action" column to find your best tools.</span></p>
+</div>
+</div>
+
+<!-- Stored Events (Part B data) -->
+<div class="container-card">
+<h2 class="text-xl font-semibold text-gray-800 mb-4">Stored Events (Emotional Eating Log)</h2>
+<div id="events-list" class="space-y-4">
+<p class="text-gray-500 italic" id="no-events-message">No events logged yet.</p>
+</div>
+</div>
+
+</div> <!-- End logbook-content -->
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// setLogLevel('Debug'); // Uncomment for debugging Firestore
+
+// --- GLOBAL VARIABLES (Provided by Canvas) ---
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+// --- FIREBASE INITIALIZATION ---
+let app;
+let db;
+let auth;
+let userId = null;
+
+if (Object.keys(firebaseConfig).length) {
+app = initializeApp(firebaseConfig);
+db = getFirestore(app);
+auth = getAuth(app);
+
+document.getElementById('dailyStress').addEventListener('input', (e) => {
+document.getElementById('stressValue').textContent = e.target.value;
+});
+
+document.getElementById('eventResult').addEventListener('input', (e) => {
+document.getElementById('resultValue').textContent = e.target.value;
+});
+
+} else {
+console.error("Firebase configuration is missing or invalid.");
+document.getElementById('user-id-display').textContent = 'Error: Firebase is not configured.';
+document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+// --- AUTHENTICATION AND SETUP ---
+onAuthStateChanged(auth, async (user) => {
+if (user) {
+userId = user.uid;
+document.getElementById('user-id-display').textContent = `My User ID (for private data): ${userId}`;
+document.getElementById('logbook-content').classList.remove('hidden');
+document.getElementById('loading-overlay').classList.add('hidden');
+
+// Initialize listeners for data display
+setupRealtimeListeners();
+} else {
+try {
+if (initialAuthToken) {
+await signInWithCustomToken(auth, initialAuthToken);
+} else {
+await signInAnonymously(auth);
+}
+} catch (error) {
+console.error("Authentication failed:", error);
+document.getElementById('user-id-display').textContent = `Authentication Error: ${error.message}`;
+document.getElementById('loading-overlay').classList.add('hidden');
+}
+}
+});
+
+// --- FIRESTORE UTILITIES ---
+const getDailyCheckInRef = (dateKey) => {
+// Path: /artifacts/{appId}/users/{userId}/daily_check_in/{dateKey}
+if (!userId) throw new Error("User not authenticated.");
+return doc(db,
+`artifacts/${appId}/users/${userId}/daily_check_in`,
+dateKey);
+};
+
+const getEventLogCollectionRef = () => {
+// Path: /artifacts/{appId}/users/{userId}/event_log
+if (!userId) throw new Error("User not authenticated.");
+return collection(db, `artifacts/${appId}/users/${userId}/event_log`);
+};
+
+
+// --- PART A: DAILY CHECK-IN LOGIC ---
+document.getElementById('daily-check-in-form').addEventListener('submit', async (e) => {
+e.preventDefault();
+if (!userId) return;
+
+const stressValue = document.getElementById('dailyStress').value;
+const hungerValue = document.getElementById('dailyHunger').value;
+const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+const checkInRef = getDailyCheckInRef(todayKey);
+const statusMessage = document.getElementById('daily-status-message');
+
+try {
+// Check if document already exists
+const docSnap = await getDoc(checkInRef);
+
+await setDoc(checkInRef, {
+date: todayKey,
+stressLevel: parseInt(stressValue),
+physicalHunger: parseInt(hungerValue),
+timestamp: serverTimestamp()
+});
+
+if (docSnap.exists()) {
+statusMessage.className = 'text-center text-sm mt-2 text-green-600';
+statusMessage.textContent = `Daily status updated for ${todayKey}!`;
+} else {
+statusMessage.className = 'text-center text-sm mt-2 text-green-600';
+statusMessage.textContent = `Daily status saved for ${todayKey}!`;
+}
+
+setTimeout(() => statusMessage.textContent = '', 5000); // Clear message after 5 seconds
+} catch (error) {
+console.error("Error saving daily status:", error);
+statusMessage.className = 'text-center text-sm mt-2 text-red-600';
+statusMessage.textContent = 'Error saving status. Check console.';
+}
+});
+
+
+// --- PART B: EVENT LOG LOGIC ---
+document.getElementById('event-log-form').addEventListener('submit', async (e) => {
+e.preventDefault();
+if (!userId) return;
+
+const form = e.target;
+
+// Get selected triggers
+const selectedTriggers = Array.from(form.querySelectorAll('input[name="trigger"]:checked'))
+.map(cb => cb.value);
+
+const otherTrigger = document.getElementById('otherTrigger').value.trim();
+if (otherTrigger) {
+selectedTriggers.push(otherTrigger);
+}
+
+const eventData = {
+time: form.eventTime.value,
+hungerLevel: parseInt(form.eventHunger.value),
+emotionalTriggers: selectedTriggers,
+foodConsumed: form.eventFood.value,
+resultScore: parseInt(form.eventResult.value),
+alternativeAction: form.eventAlternative.value,
+timestamp: serverTimestamp(),
+};
+
+try {
+await addDoc(getEventLogCollectionRef(), eventData);
+form.reset();
+document.getElementById('resultValue').textContent = '5';
+
+// Reset range slider display values after submission (optional, but good UX)
+document.getElementById('eventResult').value = 5;
+
+} catch (error) {
+console.error("Error saving event:", error);
+// In a production app, show a message here
+}
+});
+
+
+// --- PART C: ANALYSIS LOGIC ---
+function displayAnalysis(events) {
+const now = new Date();
+// Calculate date 7 days ago
+const oneWeekAgo = new Date(now.setDate(now.getDate() - 7));
+
+// Filter events from the last 7 days
+const recentEvents = events.filter(event => {
+if (!event.timestamp) return false;
+// Firestore timestamp needs to be converted to Date object for comparison
+return event.timestamp.toDate() > oneWeekAgo;
+});
+
+// 1. Calculate Trigger Frequency
+const triggerCounts = {};
+recentEvents.forEach(event => {
+event.emotionalTriggers.forEach(trigger => {
+triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1;
+});
+});
+
+let mostFrequentTrigger = 'None logged this week';
+let maxCount = 0;
+
+for (const trigger in triggerCounts) {
+if (triggerCounts[trigger] > maxCount) {
+maxCount = triggerCounts[trigger];
+mostFrequentTrigger = trigger;
+}
+}
+
+const triggerInsightElement = document.getElementById('trigger-insight');
+const eventCountElement = document.getElementById('event-count');
+const alternativeSummaryElement = document.getElementById('alternative-summary');
+
+if (recentEvents.length > 0) {
+triggerInsightElement.innerHTML = `<strong>Most Frequent Trigger:</strong> <span class="text-purple-700 font-bold">${mostFrequentTrigger}</span> (logged ${maxCount} times)`;
+} else {
+triggerInsightElement.innerHTML = `<strong>Most Frequent Trigger:</strong> <span class="text-purple-700 italic">Log more events to find patterns.</span>`;
+}
+
+eventCountElement.innerHTML = `<strong>Total Events (Last 7 Days):</strong> ${recentEvents.length}`;
+
+// Simple placeholder for alternative summary, encouraging user reflection
+alternativeSummaryElement.innerHTML = `<strong>Alternative Summary:</strong> <span class="text-purple-700 italic">Review your "Alternative Action" column to find your best tools.</span>`;
+
+}
+
+// --- REALTIME DATA DISPLAY (Part B) ---
+function setupRealtimeListeners() {
+if (!userId) return;
+
+const eventsList = document.getElementById('events-list');
+const noEventsMessage = document.getElementById('no-events-message');
+
+// Listen to the collection, ordered by timestamp descending
+const eventQuery = query(getEventLogCollectionRef(), orderBy("timestamp", "desc"));
+
+onSnapshot(eventQuery, (snapshot) => {
+const events = [];
+snapshot.forEach(doc => {
+events.push({ id: doc.id, ...doc.data() });
+});
+
+eventsList.innerHTML = ''; // Clear existing list
+
+if (events.length === 0) {
+noEventsMessage.classList.remove('hidden');
+eventsList.appendChild(noEventsMessage);
+// Still run analysis to show 0 count
+displayAnalysis(events);
+return;
+}
+noEventsMessage.classList.add('hidden');
+
+
+events.forEach(event => {
+// Using 'en-US' locale for date formatting
+const eventDate = event.timestamp ? new Date(event.timestamp.toDate()).toLocaleDateString('en-US') : 'Unknown date';
+const resultText = event.resultScore < 4 ? 'Regret' : (event.resultScore > 7 ? 'Satisfied' : 'Neutral');
+
+const eventElement = document.createElement('div');
+eventElement.className = 'p-4 border border-gray-200 rounded-lg bg-gray-50 hover:shadow-md transition duration-150 ease-in-out';
+
+eventElement.innerHTML = `
+<p class="text-xs text-gray-400 mb-1">${eventDate} at ${event.time}</p>
+<p class="text-lg font-semibold text-gray-700">${event.foodConsumed}</p>
+<div class="mt-2 text-sm space-y-1">
+<p><strong>Trigger:</strong> <span class="text-red-500 font-medium">${event.emotionalTriggers.join(', ')}</span></p>
+<p><strong>Hunger Before:</strong> ${event.hungerLevel}/10</p>
+<p><strong>Result After:</strong> ${event.resultScore}/10 (${resultText})</p>
+<p><strong>Alternative:</strong> <span class="italic text-blue-500">${event.alternativeAction}</span></p>
+</div>
+`;
+eventsList.appendChild(eventElement);
+});
+
+// Call the analysis function after rendering the list
+displayAnalysis(events);
+
+}, (error) => {
+console.error("Error fetching events: ", error);
+eventsList.innerHTML = '<p class="text-red-500">Error loading log data.</p>';
+});
+}
+</script>
+</body>
+</html>
